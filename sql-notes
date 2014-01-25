@@ -1,0 +1,5 @@
+created enum type
+See: http://www.postgresql.org/docs/9.1/static/datatype-enum.html
+CREATE TYPE flight_type AS ENUM ('arrival', 'departure');
+
+
