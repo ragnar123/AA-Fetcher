@@ -28,7 +28,7 @@ function Flight(type, obj) {
     // Returns parameterized query and a array of values
     this.getInsertQuery = function () {
         return {
-            query: 'INSERT INTO flights (planned_time, expected_time, route, "from", "type") VALUES ( $1, $2, $3, $4, $5 )',
+            query: 'INSERT INTO fae_flights (planned_time, expected_time, route, "from", "type") VALUES ( $1, $2, $3, $4, $5 )',
             values: [this.planned_time, this.expected_time, this.route, this.from, this.type]
         }
     }
@@ -66,32 +66,52 @@ function parseXml(xmlString, callback) {
     });
 }
 
-function insertFlights(flights, callback) {
-    console.log(flights);
+function flightAlreadyExistsInDatabase (flight, callback) {
+    // First we check if the record exists
+    client.query(
+        "SELECT * FROM fae_flights WHERE planned_time = $1 AND route = $2",
+        [flight.planned_time, flight.route],
+        function (err, result) { 
+            if (err) throw err;
+            callback(result.rows.length === 0);
+        }
+    );
 }
 
-async.waterfall([
-        // Retrieves list of flights from atlantic.fo
-        getFlightXml,
-        // Parses the xml file to js objects. Returns an array of flight objects
-        parseXml,
-        // Checks for duplicate entries and insertes new flights
-        insertFlights
-    ], function (err, result) {
-        console.log(result);
+function insertFlights(flights, callback) {
+    console.log(flights);
+
+    async.filter(flights, flightAlreadyExistsInDatabase, function (flightsToBeInserted) {
+        console.log(flightsToBeInserted);
+        async.forEach(flightsToBeInserted, function (flight, cb) {
+            var query = flight.getInsertQuery();
+            client.query(query.query, query.values, function (err, result) {
+                if (err) throw err;
+                cb();
+            });
+        }, function () {
+            callback();
+        });
+
     });
+}
 
 client.connect(function(err) {
     if (err) {
         return console.error('could not connect to postgres', err);
     }
 
-    client.query('SELECT NOW() AS "theTime"', function (err, result) {
-        if (err) {
-            return console.error('error running query', err);
+    async.waterfall([
+            // Retrieves list of flights from atlantic.fo
+            getFlightXml,
+            // Parses the xml file to js objects. Returns an array of flight objects
+            parseXml,
+            // Checks for duplicate entries and insertes new flights
+            insertFlights
+        ], function (err, result) {
+            console.log(result);
+            client.end();
         }
-        console.log(result.rows[0].theTime);
-        client.end();
-    });
+    );
 });
 
