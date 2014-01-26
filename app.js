@@ -38,8 +38,14 @@ function Flight(type, obj) {
 // Functions used in flow
 function getFlightXml(callback) {
     http.get("http://crewportal.atlantic.fo/sms/Flightinfoxml.php", function(res) {
+        var body = "";
+
         res.on('data', function(data) {
-            callback(null, data);
+            body += data;
+        });
+
+        res.on('end', function () {
+            callback(null, body);
         });
     }).on('error', function(e) {
         // Log error and notify admin
@@ -50,6 +56,7 @@ function getFlightXml(callback) {
 
 function parseXml(xmlString, callback) {
     xml2js.parseString(xmlString, function (err, result) {
+        if (err) throw err;
         var flights = [],
             arrivals = result.AtlanticAirwaysFlightsVagar.Arrivals[0].Arrival,
             departures = result.AtlanticAirwaysFlightsVagar.Departures[0].Departure;
