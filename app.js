@@ -40,6 +40,7 @@ function getFlightXml(callback) {
     http.get("http://crewportal.atlantic.fo/sms/Flightinfoxml.php", function(res) {
         var body = "";
 
+        res.setEncoding('binary');
         res.on('data', function(data) {
             body += data;
         });
@@ -86,10 +87,8 @@ function flightAlreadyExistsInDatabase (flight, callback) {
 }
 
 function insertFlights(flights, callback) {
-    console.log(flights);
-
     async.filter(flights, flightAlreadyExistsInDatabase, function (flightsToBeInserted) {
-        console.log(flightsToBeInserted);
+        console.log("Flights to be inserted:", flightsToBeInserted);
         async.forEach(flightsToBeInserted, function (flight, cb) {
             var query = flight.getInsertQuery();
             client.query(query.query, query.values, function (err, result) {
@@ -97,7 +96,7 @@ function insertFlights(flights, callback) {
                 cb();
             });
         }, function () {
-            callback();
+            callback(null, "Inserted " + flightsToBeInserted.length + " flights");
         });
 
     });
