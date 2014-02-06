@@ -1,6 +1,6 @@
 // Dependencies
 var http = require('http'),
-    async = require('async');
+    async = require('async'),
     pg = require('pg'),
     xml2js = require('xml2js'),
     config = require('./config.js'),
