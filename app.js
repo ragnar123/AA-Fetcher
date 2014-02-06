@@ -18,8 +18,10 @@ function Flight(type, obj) {
 //  Remark: [ '' ],
 //  LongRemark: [ '' ] }
 
-    this.planned_time = new Date("2014-" + obj.Date[0].split('-').reverse().join('-') + " " + obj.Planned[0]);
-    this.expected_time = (obj.Expected[0].length > 0) ? new Date("2014-" + obj.Date[0].split('-').reverse().join('-') + " " + obj.Expected[0]) : null;
+    this.planned_time = new Date("2014-" + 
+        obj.Date[0].split('-').reverse().join('-') + " " + obj.Planned[0]);
+    this.expected_time = (obj.Expected[0].length > 0) ? new Date("2014-" + 
+        obj.Date[0].split('-').reverse().join('-') + " " + obj.Expected[0]) : null;
     this.route = obj.Route[0];
     this.from = obj.From[0];
 
@@ -28,10 +30,13 @@ function Flight(type, obj) {
     // Returns parameterized query and a array of values
     this.getInsertQuery = function () {
         return {
-            query: 'INSERT INTO fae_flights (planned_time, expected_time, route, "from", "type") VALUES ( $1, $2, $3, $4, $5 )',
-            values: [this.planned_time, this.expected_time, this.route, this.from, this.type]
-        }
-    }
+            query: 'INSERT INTO fae_flights ' + 
+                '(planned_time, expected_time, route, "from", "type") ' +
+                'VALUES ( $1, $2, $3, $4, $5 )',
+            values: [this.planned_time, this.expected_time, this.route,
+                this.from, this.type]
+        };
+    };
 }
 
 
